@@ -1,0 +1,322 @@
+openapi: 3.0.0
+info:
+  title: API de Gestión de Usuarios
+  description: Este servicio permite la administración de usuarios, incluyendo operaciones de autenticación, creación, lectura, actualización y eliminación.
+  version: 1.0.0
+
+servers:
+  - url: http://127.0.0.1:5000/users
+    description: Entorno de desarrollo local
+
+components:
+  schemas:
+    Error:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+          example: "Ocurrió un error inesperado"
+
+    AuthResult:
+      type: object
+      properties:
+        token:
+          type: string
+        user:
+          type: object
+          properties:
+            id:
+              type: integer
+            name:
+              type: string
+              example: "Carlos Mendoza"
+            email:
+              type: string
+              example: "carlos@example.com"
+
+paths:
+  /:
+    get:
+      summary: Listar usuarios registrados
+      operationId: listUsers
+      responses:
+        '200':
+          description: Usuarios listados correctamente
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    name:
+                      type: string
+                      example: "Carlos Mendoza"
+                    email:
+                      type: string
+                      example: "carlos@example.com"
+        '400':
+          description: Parámetros no válidos en la solicitud
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                errorExample:
+                  value:
+                    error: "Solicitud inválida"
+                    message: "Revise los datos enviados en la petición"
+        '500':
+          description: Fallo del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                serverFailure:
+                  value:
+                    error: "Error del servidor"
+                    message: "Algo salió mal. Intente nuevamente más tarde"
+
+    post:
+      summary: Registrar nuevo usuario
+      operationId: registerUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - name
+                - email
+                - password
+              properties:
+                name:
+                  type: string
+                  example: "Carlos Mendoza"
+                email:
+                  type: string
+                  example: "carlos@example.com"
+                password:
+                  type: string
+                  example: "segura123"
+      responses:
+        '201':
+          description: Usuario creado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+        '400':
+          description: Información de entrada inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                badInput:
+                  value:
+                    error: "Datos incorrectos"
+                    message: "Los campos requeridos deben ser completados correctamente"
+        '500':
+          description: Error interno
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+              examples:
+                internalFail:
+                  value:
+                    error: "Fallo interno"
+                    message: "No fue posible completar la operación. Intente más tarde"
+
+  /{user_id}:
+    get:
+      summary: Consultar usuario por ID
+      operationId: fetchUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Usuario encontrado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                    example: "Carlos Mendoza"
+                  email:
+                    type: string
+                    example: "carlos@example.com"
+        '400':
+          description: El ID proporcionado no es válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no existe
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Problema del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Editar datos del usuario
+      operationId: modifyUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: "Carlos Mendoza"
+                email:
+                  type: string
+                  example: "carlos@example.com"
+      responses:
+        '200':
+          description: Datos actualizados correctamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  name:
+                    type: string
+                  email:
+                    type: string
+        '400':
+          description: Formato de datos no válido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Usuario no encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Error inesperado del servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    delete:
+      summary: Remover usuario
+      operationId: removeUser
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Usuario eliminado exitosamente
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "El usuario ha sido eliminado"
+        '400':
+          description: ID inválido
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No se encontró el usuario
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Fallo del sistema
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /login:
+    post:
+      summary: Autenticación de usuario
+      operationId: authenticateUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - email
+                - password
+              properties:
+                email:
+                  type: string
+                  example: "carlos@example.com"
+                password:
+                  type: string
+                  example: "segura123"
+      responses:
+        '200':
+          description: Inicio de sesión exitoso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthResult'
+        '400':
+          description: Credenciales inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Acceso no autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
